@@ -1,0 +1,36 @@
+.desciption {
+    font-size: 20px;
+    align-self: center;
+    -unity-font-style: bold;
+}
+
+.submenu-slider {
+    font-size: 30px;
+    -unity-text-outline-color: rgb(0, 0, 0);
+    -unity-font-style: bold;
+    background-color: rgba(180, 224, 8, 0.59);
+    align-content: flex-start;
+    align-self: stretch;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.submenutext {
+    font-size: 60px;
+    -unity-font-style: bold;
+    align-self: center;
+}
+
+.spacer {
+    min-width: 100%;
+    min-height: 5%;
+    max-height: 5%;
+}
+
+.spacer {
+    min-width: 100%;
+    min-height: 5%;
+    max-height: 5%;
+}

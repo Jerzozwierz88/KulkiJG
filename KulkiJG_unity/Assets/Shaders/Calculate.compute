@@ -1,0 +1,305 @@
+// Define macro for neighbours search
+#define LOOP_OVER_NEIGHBOURS(BODY) \
+{ \
+    uint2 cell = posToCell(pos, box_size.xy, cell_size); \
+    for (int i = 0; i < 9; i++) \
+    { \
+        int2 thisCell = (int2)cell + translations[i]; \
+        if (thisCell.y < 0 || thisCell.y >= numYCells) continue; \
+        if (thisCell.x < 0 || thisCell.x >= numXCells) \
+        { \
+            thisCell.x = uint(thisCell.x + numXCells) % numXCells; \
+        } \
+        uint hash = HashFromCell(thisCell, hashCount); \
+        uint j = startLookupIndexes[hash]; \
+        while (j < totalNumberOfParticles && lookupTable[j].hash == hash) \
+        { \
+            uint thisIdx = lookupTable[j].index; \
+            j++; \
+            if (thisIdx == index) continue; \
+            BODY \
+        } \
+    } \
+} \
+
+
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel HalfStep
+#pragma kernel UpdateBuffersWithTempValues
+#pragma kernel FinalStep
+
+#pragma kernel Runaway
+#pragma kernel FindNeighbours
+
+#pragma kernel SetParticleDensities
+#pragma kernel SetWallDensities
+
+// Setup Buffers
+shared RWStructuredBuffer<float2> positions;
+shared RWStructuredBuffer<float2> velocities;
+shared RWStructuredBuffer<float>  densities;
+shared RWStructuredBuffer<float>  pressures;
+shared StructuredBuffer<float>    mass;
+
+struct LookupTableType
+{
+    uint index;
+    uint hash;
+};
+shared StructuredBuffer<LookupTableType> lookupTable;
+shared StructuredBuffer<uint>            startLookupIndexes;
+
+static const int numThreads = 1024;
+// Predefine simulation parameters
+const float radius;
+const float interaction_radius;
+const float gravity;
+const float4 box_size;
+const uint hashCount;
+const int numXCells;
+const int numYCells;
+const float2 cell_size;
+
+const uint numberOfParticles;
+const uint numberOfDummies;
+const uint totalNumberOfParticles;
+
+const float speedOfSound;
+const float artVisStrength;
+const float viscosity;
+const float splineZeroValue;
+const float referencePressure;
+const float targetDensity;
+const float gamma;
+
+const float h;
+const float spline_scale;
+const float spline_derivative_scale;
+
+float dt;
+float time;
+float tdamp;
+bool dragging;
+float2 mouse_position;
+float bucket_radius;
+float bucket_force;
+float centrifugal_force;
+
+// include helper functions
+#include "./hash.hlsl"
+#include "./SPHmath.hlsl"
+#include "./evolution.hlsl"
+
+float MyLength(float2 a)
+{
+	// float x_dist = min(abs(a.x), box_size.x - abs(a.x));
+	float distSquare = a.x * a.x + a.y * a.y;
+	return sqrt(distSquare);
+}
+
+float2 MyDir(float2 diff)
+{
+    // if (MyLength(diff)==0) return float2(0, 1);
+    // return abs(diff.x)<box_size.x/2 ? diff / length(diff) : -diff / length(diff);
+    return length(diff)==0 ? float2(0, 1): diff / length(diff);
+}
+
+float2 SPHForce(uint index)
+{
+    float2 pos = positions[index];
+    float2 vel = velocities[index];
+    // Pressure Gradient
+    float2 force = float2(0, 0);
+
+    LOOP_OVER_NEIGHBOURS({
+        float dst = MyLength(pos - positions[thisIdx]);
+        float2 dir = MyDir(pos - positions[thisIdx]);
+        float influence = SplineKernelDerivative(dst/h, spline_derivative_scale);
+
+        float2 pressureGradient = (pressures[index] + pressures[thisIdx]) / (densities[index]*densities[thisIdx]);
+        float mean_density = (densities[index] + densities[thisIdx]) * 0.5;
+        float2 viscosityForce = -8*viscosity/mean_density * dot(velocities[index]-velocities[thisIdx], dir) / h;
+        force -= mass[thisIdx] * (pressureGradient + viscosityForce) * influence * dir;
+    });            
+            
+    return force;
+}
+
+float2 ExternalForce(uint index)
+{
+    float2 pos = positions[index];
+    float2 vel = velocities[index];
+    float2 force = gravity * float2(0, 1);
+
+    // Add central force
+    force -= centrifugal_force*centrifugal_force * pos;
+    if(dragging)
+    {
+        float2 diff = mouse_position - pos;
+        float dist = MyLength(diff);
+        
+        if (dist < bucket_radius)
+        {
+            float2 dir = MyDir(diff);
+            force += bucket_force * dir - 10 * vel;
+        }
+    }
+    return force;
+}
+
+float2 TotalForce(uint index)
+{
+    bool before_tdamp = (time < tdamp);
+    float2 sph = SPHForce(index) * (1 + sin((time/tdamp*0.5 - 0.5)*3.1415927)*before_tdamp);
+    return sph + ExternalForce(index);
+}
+
+float DensityParticle(uint index)
+{
+    float density = mass[index]*splineZeroValue;
+    float2 pos = positions[index];
+
+    LOOP_OVER_NEIGHBOURS({
+        float dst = MyLength(pos - positions[thisIdx]);
+        float influence = SplineKernel(dst/h, spline_scale);
+        density += mass[thisIdx]*influence;
+    });
+    return density;
+}
+
+float PressureWall(uint index)
+{
+    float pressure = 0;
+    float kernelSum = 0;
+    float2 outsideForce = float2(0, 0);
+
+    float2 pos = positions[index];
+
+    LOOP_OVER_NEIGHBOURS({
+        if (thisIdx >= numberOfParticles) continue;
+        float dst = MyLength(pos - positions[thisIdx]);
+        float influence = SplineKernel(dst/h, spline_scale);
+
+        kernelSum += influence;
+        pressure += pressures[thisIdx] * influence;
+        outsideForce += MyDir(pos - positions[thisIdx])*dst * densities[thisIdx] * influence;
+    });
+    pressure += dot(outsideForce, ExternalForce(index));
+    pressure = kernelSum == 0 ? 0 : pressure / kernelSum;
+    return pressure;
+}
+
+// Verlet Algorithm
+float DensityChange(uint index)
+{
+    float2 pos = positions[index];
+    float2 vel = velocities[index];
+    float densityChange = 0;
+
+    LOOP_OVER_NEIGHBOURS({
+        float dst = MyLength(positions[index]-positions[thisIdx]);
+        float2 dir = MyDir(positions[index]-positions[thisIdx]);
+        float influence = SplineKernelDerivative(dst/h, spline_derivative_scale);
+        densityChange += dot( velocities[index]-velocities[thisIdx], dir) * mass[thisIdx]/densities[thisIdx]*influence;
+    });
+    return densities[index] * densityChange;
+}
+
+[numthreads(numThreads,1,1)]
+void SetParticleDensities(uint id: SV_DispatchThreadID)
+{
+    if (id.x >= numberOfParticles) return;
+
+    float density = DensityParticle(id.x);
+    densities[id.x] = density;
+    pressures[id.x] = ConvertDensityToPressure(density, targetDensity, referencePressure, gamma);
+}
+
+[numthreads(numThreads,1,1)]
+void SetWallDensities(uint id: SV_DispatchThreadID)
+{
+    if (id.x >= numberOfDummies) return;
+    uint index = id.x + numberOfParticles;
+    float pressure = PressureWall(index);
+    pressures[index] = pressure;
+    densities[index] = ConvertPressureToDensity(pressure, targetDensity, referencePressure, gamma);
+}
+
+shared RWStructuredBuffer<float2> pos_temp;
+shared RWStructuredBuffer<float2> vel_temp;
+shared RWStructuredBuffer<float> rho_temp;
+[numthreads(numThreads, 1, 1)]
+void HalfStep(uint id: SV_DispatchThreadID)
+{
+    if (id.x >= numberOfParticles) return;
+
+    pos_temp[id.x] = positions[id.x]  + dt * 0.5 * velocities[id.x];
+    vel_temp[id.x] = velocities[id.x] + dt * 0.5 * TotalForce(id.x);
+    float drho = DensityChange(id.x);
+    rho_temp[id.x] = densities[id.x]  + dt * 0.5 * drho;
+    // h_temp[id.x]   = kernel_h[id.x] * (1 - 0.25 * dt * drho/densities[id.x]);
+    // rho_temp[id.x] = DensityParticle(id.x);
+}
+
+[numthreads(numThreads,1,1)]
+void UpdateBuffersWithTempValues(uint id: SV_DispatchThreadID)
+{
+    if (id.x >= numberOfParticles) return;
+    positions[id.x]      = pos_temp[id.x];
+    velocities[id.x]     = vel_temp[id.x];
+    densities[id.x]      = rho_temp[id.x];
+    pressures[id.x]      = ConvertDensityToPressure(rho_temp[id.x], targetDensity, referencePressure, gamma);
+}
+
+[numthreads(numThreads,1,1)]
+void FinalStep(uint id: SV_DispatchThreadID)
+{
+    if (id.x >= numberOfParticles) return;
+    float t_damp = 5;
+    float damping = time > t_damp ? 1: pow(abs(time/t_damp), 0.33);
+    velocities[id.x] += dt * 0.5 * TotalForce(id.x) * damping;
+    positions[id.x]  += dt * 0.5 * velocities[id.x];
+    float drho = DensityChange(id.x);
+    densities[id.x] += dt * 0.5 * drho;
+    // kernel_h[id.x]  = kernel_h[id.x] / (1 + 0.25 * dt * drho/densities[id.x]);
+    // densities[id.x] = DensityParticle(id.x);
+    pressures[id.x] = ConvertDensityToPressure(densities[id.x], targetDensity, referencePressure, gamma);
+}
+
+[numthreads(numThreads,1,1)]
+void Runaway(uint3 id: SV_DISPATCHTHREADID)
+{
+    if (id.x >= numberOfParticles) return;
+    float2 pos = positions[id.x];
+    if (abs(pos.y) > box_size.y/2 || isnan(pos.x) || isnan(pos.y))
+    {
+        // respawn particles if it gets out of the box
+        positions[id.x] = float2(sin(104.135*id.x)*box_size.x/2, sin(75.113*id.x)*box_size.y/2);
+    }
+    if (abs(pos.x) > box_size.x/2)
+    {
+        // periodic BC
+        positions[id.x].x -= sign(pos.x) * box_size.x;
+    }
+    if (speedOfSound < length(velocities[id.x]))
+    {
+        velocities[id.x] *= speedOfSound / length(velocities[id.x]);
+    }
+}
+
+
+// Testing part
+RWStructuredBuffer<uint> neighboursTest;
+
+[numthreads(1,1,1)]
+void FindNeighbours(uint3 id: SV_DispatchThreadID)
+{
+    float2 pos = mouse_position;
+    uint index = totalNumberOfParticles;
+    uint counter = 0;
+    LOOP_OVER_NEIGHBOURS({
+        neighboursTest[counter] = thisIdx;
+        counter++;
+    });
+    neighboursTest[counter+1] = totalNumberOfParticles;
+}

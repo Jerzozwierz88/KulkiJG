@@ -1,0 +1,12 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/setup.uss?fileID=7433441132597879392&amp;guid=725c7e4d6b0598a4b9eb557b30fa39c5&amp;type=3#setup" />
+    <ui:VisualElement name="Panel" class="panel" style="flex-grow: 1;">
+        <ui:VisualElement name="Menu" class="setup" style="flex-grow: 1;">
+            <ui:UnsignedIntegerField label="Particles" value="3000" name="NumberOfParticles" class="my-uint my-text" style="width: 80%; justify-content: center; align-content: center; align-self: center; flex-wrap: nowrap;" />
+            <ui:Slider label="Radius" value="0" high-value="-0.5" fill="true" low-value="-2" show-input-field="false" direction="Horizontal" inverted="false" page-size="0" picking-mode="Ignore" name="Radius" language-direction="Inherit" usage-hints="None" class="my-text my-slider" style="background-color: rgba(84, 111, 27, 0.75); align-self: stretch; -unity-text-outline-width: 0; -unity-text-outline-color: rgb(0, 0, 0);" />
+            <ui:Slider label="Gravity" value="0" high-value="10" name="Gravity" fill="true" show-input-field="false" class="my-slider my-text" />
+            <ui:Toggle label="Obstacle" name="ObstacleSwitch" value="false" class="my-text" style="align-content: auto; justify-content: space-between; align-self: auto;" />
+            <ui:Button text="START" name="Play" class="my-text button" style="background-color: rgb(202, 160, 28);" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

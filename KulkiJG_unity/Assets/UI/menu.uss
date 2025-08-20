@@ -1,0 +1,235 @@
+.panel {
+    background-color: rgba(148, 0, 0, 0.31);
+    justify-content: space-between;
+    align-content: auto;
+}
+
+.my_button {
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+    flex-grow: 1;
+    align-items: center;
+    justify-content: flex-start;
+    align-content: auto;
+    align-self: center;
+    border-bottom-color: rgb(44, 55, 12);
+    border-left-color: rgb(44, 55, 12);
+    border-right-color: rgb(44, 55, 12);
+    border-top-color: rgb(44, 55, 12);
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    background-color: rgba(151, 159, 18, 0.39);
+    font-size: 50px;
+    -unity-font-style: bold;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    -unity-background-scale-mode: scale-to-fit;
+    width: 80%;
+    height: auto;
+}
+
+.my_button:hover {
+    background-color: rgb(157, 140, 41);
+    scale: 1.03 1.1;
+    transition-property: scale;
+}
+
+.menu {
+    align-items: stretch;
+    background-color: rgba(21, 195, 60, 0.57);
+    width: 80%;
+    height: auto;
+    position: relative;
+    align-content: auto;
+    flex-grow: 0;
+    align-self: center;
+    max-height: none;
+    top: auto;
+    justify-content: flex-start;
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+}
+
+.my_button {
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+    flex-grow: 1;
+    align-items: center;
+    justify-content: flex-start;
+    align-content: auto;
+    align-self: center;
+    border-bottom-color: rgb(44, 55, 12);
+    border-left-color: rgb(44, 55, 12);
+    border-right-color: rgb(44, 55, 12);
+    border-top-color: rgb(44, 55, 12);
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    background-color: rgba(151, 159, 18, 0.39);
+    font-size: 50px;
+    -unity-font-style: bold;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    -unity-background-scale-mode: scale-to-fit;
+    width: 80%;
+    height: auto;
+}
+
+.hide {
+    display: none;
+}
+
+.slider:hover {
+    scale: 1.1 1.1;
+    transition-property: scale;
+    transition-duration: 0.25s;
+}
+
+.my-text {
+    font-size: 30px;
+    -unity-font-style: bold;
+    align-self: center;
+    justify-content: space-around;
+    align-content: auto;
+}
+
+.my_button {
+    -unity-background-image-tint-color: rgb(0, 0, 0);
+    flex-grow: 1;
+    align-items: center;
+    justify-content: flex-start;
+    align-content: auto;
+    align-self: center;
+    border-bottom-color: rgb(44, 55, 12);
+    border-left-color: rgb(44, 55, 12);
+    border-right-color: rgb(44, 55, 12);
+    border-top-color: rgb(44, 55, 12);
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    background-color: rgba(151, 159, 18, 0.39);
+    font-size: 50px;
+    -unity-font-style: bold;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    -unity-background-scale-mode: scale-to-fit;
+    width: 80%;
+    height: 20%;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    max-height: 20%;
+}
+
+.button2 {
+    font-size: 30px;
+    border-top-left-radius: 30px;
+    border-left-color: rgb(63, 79, 16);
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-top-right-radius: 30px;
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-left-width: 3px;
+    border-top-color: rgb(63, 79, 16);
+    border-right-color: rgb(63, 79, 16);
+    border-bottom-color: rgb(63, 79, 16);
+    background-color: rgba(161, 138, 40, 0.63);
+}
+
+.button2:hover {
+    font-size: 30px;
+    border-top-left-radius: 30px;
+    border-left-color: rgb(63, 79, 16);
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-top-right-radius: 30px;
+    border-top-width: 3px;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-left-width: 3px;
+    border-top-color: rgb(63, 79, 16);
+    border-right-color: rgb(63, 79, 16);
+    border-bottom-color: rgb(63, 79, 16);
+    background-color: rgba(161, 138, 40, 0.63);
+    scale: 1.03 1.1;
+}
+
+.arrow {
+    width: 30%;
+    height: 20%;
+    padding-top: 10px;
+    margin-top: 10px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    background-color: rgba(229, 20, 29, 0.38);
+}
+
+.arrow:hover {
+    width: 30%;
+    height: 20%;
+    padding-top: 10px;
+    margin-top: 10px;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    background-color: rgba(229, 20, 29, 0.83);
+    scale: 1.1 1.1;
+}
+
+.slider {
+    min-height: 10%;
+    justify-content: center;
+    align-items: auto;
+    align-content: auto;
+    position: relative;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+.bucket-slider {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 10px;
+    border-top-width: 1px;
+    border-right-width: 1px;
+    border-bottom-width: 1px;
+    border-left-width: 1px;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+    background-color: rgba(169, 195, 207, 0.42);
+    color: rgb(89, 10, 15);
+    -unity-font-style: bold;
+    height: auto;
+    min-height: 30%;
+    margin-left: 15px;
+    margin-right: 15px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.general:hover {
+}
+
+.bucket-slider:hover {
+    background-color: rgba(20, 68, 144, 0.65);
+    scale: 1.1 1.1;
+}

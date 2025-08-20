@@ -1,0 +1,10 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/menu.uss?fileID=7433441132597879392&amp;guid=81306fff67eb35a4180d33982a41a364&amp;type=3#menu" />
+    <Style src="project://database/Assets/Resources/Submenus/submenu.uss?fileID=7433441132597879392&amp;guid=f568e8ea7e02c004b80e39367a5e5c90&amp;type=3#submenu" />
+    <engine:VisualElement name="Velocity" style="flex-grow: 1;">
+        <engine:Label text="Velocity" class="my-text submenutext" />
+        <engine:VisualElement name="Spcer" class="spacer" style="flex-grow: 1;" />
+        <engine:Slider label="Max velocity" value="0.2" high-value="1" name="VelocityDisplay" show-input-field="false" class="slider submenu-slider general" />
+        <engine:Label text="% of the speed of sound" class="desciption" />
+    </engine:VisualElement>
+</engine:UXML>
