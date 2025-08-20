@@ -40,3 +40,5 @@ Icon?
 ehthumbs.db
 Thumbs.db
 *.log
+# Project testing Files
+/KulkiJG_unity/[Mm]oje/
